@@ -5,6 +5,8 @@ from packaging.specifiers import SpecifierSet, InvalidSpecifier
 from packaging.requirements import Requirement
 from packaging.version import Version, InvalidVersion
 import sys
+from dotenv import load_dotenv
+import os
 
 SpecifierDict = {}
 def get_python_compatibility(package_name, version):
@@ -296,9 +298,10 @@ def create_graph(package_name, version, dependency_versions, driver):
         session.execute_write(process_dependencies, package_name, version, dependency_versions)
 
 # Neo4j connection details
-uri = "bolt://localhost:7687"
-user = "neo4j"
-password = "your_password" #insert your password
+load_dotenv()
+uri = os.getenv("URI")
+user = os.getenv("USER")
+password = os.getenv("PASSWORD") #insert your password
 
 # Connect to Neo4j
 driver = GraphDatabase.driver(uri, auth=(user, password))
