@@ -307,25 +307,44 @@ password = os.getenv("PASSWORD") #insert your password
 driver = GraphDatabase.driver(uri, auth=(user, password))
 
 # Path to requirements.txt file
-requirements_file = 'requirements.txt'
+requirements_file = 'requirements4.txt'
 
 # Create graphs for each package in requirements.txt
 with open(requirements_file, 'r') as f:
     packages = f.readlines()
     for package_info in packages:
         package_info = package_info.strip().split('==')
+        print(package_info)
         if len(package_info) >= 2 and package_info[0] and package_info[1]:
             package_name = package_info[0]
             package_version = package_info[1]
 
             # Get dependencies and their versions for the package from PyPI API
-            dependency_versions = get_dependencies_from_pypi(package_name, package_version)
+            
+        elif len(package_info) == 1:
+            package_name = package_info[0]
+            print(package_name)
+            response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
+            print(response.status_code)
+            if response.status_code == 200:
+                data = response.json()
+                releases = data.get("releases", {})
+                # print(releases)
+                sorted_versions = sorted(releases.keys(), key=lambda v: Version(v), reverse=True)
+                package_version = sorted_versions[0]
+        
+    
 
-            # Create graph for the package and its dependencies
-            create_graph(package_name, package_version, dependency_versions, driver)
+
+
         else:
             if package_info and package_info != ['']:
                 print(f"Invalid format in line: {package_info}")
+
+        dependency_versions = get_dependencies_from_pypi(package_name, package_version)
+
+            # Create graph for the package and its dependencies
+        create_graph(package_name, package_version, dependency_versions, driver)
 
 requirements_file = 'requirements.txt'
 requirements = read_requirements(requirements_file)
